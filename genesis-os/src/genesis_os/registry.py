@@ -9,33 +9,53 @@ CapabilityFn = Callable[[dict[str, Any]], Any]
 
 
 class CapabilityRegistry:
+    """Logical capability registry with replaceable provider implementations."""
+
     def __init__(self) -> None:
-        self._manifests: dict[str, CapabilityManifest] = {}
-        self._handlers: dict[str, CapabilityFn] = {}
+        self._providers: dict[str, dict[str, tuple[CapabilityManifest, CapabilityFn]]] = {}
 
     def register(self, manifest: CapabilityManifest, handler: CapabilityFn) -> None:
-        if manifest.name in self._manifests:
-            raise ValueError(f"capability already registered: {manifest.name}")
-        self._manifests[manifest.name] = manifest
-        self._handlers[manifest.name] = handler
+        providers = self._providers.setdefault(manifest.name, {})
+        if manifest.provider in providers:
+            raise ValueError(
+                f"capability provider already registered: {manifest.name}@{manifest.provider}"
+            )
+        providers[manifest.provider] = (manifest, handler)
 
-    def manifest(self, name: str) -> CapabilityManifest:
+    def has(self, name: str) -> bool:
+        return name in self._providers and bool(self._providers[name])
+
+    def providers(self, name: str) -> tuple[CapabilityManifest, ...]:
         try:
-            return self._manifests[name]
+            providers = self._providers[name]
         except KeyError as exc:
             raise KeyError(f"unknown capability: {name}") from exc
+        return tuple(providers[key][0] for key in sorted(providers))
 
-    def handler(self, name: str) -> CapabilityFn:
-        self.manifest(name)
-        return self._handlers[name]
+    def manifest(self, name: str, provider: str | None = None) -> CapabilityManifest:
+        try:
+            providers = self._providers[name]
+        except KeyError as exc:
+            raise KeyError(f"unknown capability: {name}") from exc
+        if provider is None:
+            provider = sorted(providers)[0]
+        try:
+            return providers[provider][0]
+        except KeyError as exc:
+            raise KeyError(f"unknown provider for {name}: {provider}") from exc
+
+    def handler(self, name: str, provider: str | None = None) -> CapabilityFn:
+        manifest = self.manifest(name, provider)
+        return self._providers[name][manifest.provider][1]
 
     def names(self) -> tuple[str, ...]:
-        return tuple(sorted(self._manifests))
+        return tuple(sorted(self._providers))
 
     def discover(self, query: str, *, domain: str | None = None) -> list[CapabilityManifest]:
         tokens = {t.lower() for t in query.replace(".", " ").replace("-", " ").split()}
         scored: list[tuple[int, CapabilityManifest]] = []
-        for manifest in self._manifests.values():
+        for name in self.names():
+            manifest = self.manifest(name)
             if domain and manifest.domains and domain not in manifest.domains:
                 continue
             haystack = " ".join((manifest.name, manifest.description, *manifest.tags)).lower()

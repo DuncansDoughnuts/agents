@@ -1,87 +1,76 @@
 # Genesis OS
 
-**A policy-governed capability runtime for composable autonomous intelligence.**
+**A policy-governed capability operating system for persistent, composable autonomous intelligence.**
 
-Genesis OS is a reference architecture and working kernel for systems that turn goals into auditable capability graphs instead of hard-wiring one model, one agent framework, or one application stack.
+Genesis OS turns objectives into auditable capability graphs, acquires missing trusted capabilities, routes work across interchangeable providers, persists objective/world state, learns from outcomes, and promotes repeated successful plans into reusable procedures.
 
-It is intentionally **not** marketed as AGI. The engineering target is narrower and testable:
+It is intentionally **not** marketed as AGI. The engineering target is concrete:
 
-> Given an objective, discover and compose capabilities, execute them through one policy boundary, evaluate the outcome, retain useful experience, and allow the surrounding capability set to grow without rewriting the kernel.
+> Given a persistent objective, determine the capabilities required to pursue it, acquire approved missing capabilities, choose providers using observed outcomes, execute through one policy boundary, update structured world state, create learning questions from failures, and compile repeated successful behavior into reusable procedures.
 
-## Why this exists
+## Why this is different
 
-The current agent ecosystem has excellent pieces but fragmented control planes: agent frameworks, memory engines, browser/computer-use systems, sandboxes, research loops, workflow systems, skill registries, model routers, financial data stacks, media generators, and vertical agents. Genesis treats those as replaceable providers behind a common contract.
-
-The base runtime owns only the primitives that must remain coherent across every domain:
-
-1. **Goal / plan state**
-2. **Capability identity and dependencies**
-3. **Authorization and risk policy**
-4. **Execution lifecycle**
-5. **Outcome evaluation**
-6. **Episodic + procedural memory**
-7. **Auditability**
-
-Everything else is an adapter or domain pack.
-
-## Architecture
+Most agent systems stop at `model -> tools -> actions`. Genesis owns the layer above that:
 
 ```text
-Human / Service Intent
-        |
-        v
-+-----------------------+
-| Goal + Context        |
-+-----------+-----------+
-            |
-            v
-+-----------------------+       +----------------------+
-| Capability Planner    |<----->| Capability Registry  |
-+-----------+-----------+       +----------------------+
-            |
-            v
-+-----------------------+
-| Central Policy Gate   |  <-- identity, permissions, risk, asset scope
-+-----------+-----------+
-            |
-            v
-+-----------------------+
-| Provider / Adapter    |  <-- MCP, A2A, browser, code, data, model, human
-+-----------+-----------+
-            |
-            v
-+-----------------------+
-| Evaluator             |
-+-----------+-----------+
-            |
-            v
-+-----------------------+
-| Memory + Learning     |  <-- episodes -> procedures -> future reuse
-+-----------+-----------+
-            |
-            +------------------> next heartbeat / objective
+Persistent Objective
+      |
+      v
+Capability Graph ---- missing? ----> Trusted Capability Acquisition
+      |                                      |
+      v                                      v
+Provider Router <------- outcome history / cost / latency
+      |
+      v
+Central Policy Gate
+      |
+      v
+Execution -> Evaluation -> Episodic Memory
+      |                         |
+      v                         v
+World Model              Procedure Compiler
+      |                         |
+      +------ Learning / Curiosity <------+
+                    |
+                    v
+              next heartbeat
 ```
+
+The goal is not a permanent zoo of named agents. Agents, models, skills, browsers, sandboxes, APIs, humans, and machines are replaceable capability providers. Genesis keeps the durable objective, policy, memory, learning, and capability-selection state.
+
+## v0.2 implemented runtime
+
+- **Persistent objectives** — objectives survive individual runs and advance through explicit heartbeats.
+- **Structured world model** — typed entities and relationships hold durable state outside prompt context.
+- **Safe capability acquisition** — missing capabilities may be registered from explicit verified sources; arbitrary generated code is not executed.
+- **Provider routing** — multiple providers can implement one logical capability and are ranked using observed quality, cost, and latency.
+- **Procedure compilation** — repeatedly successful plans are promoted into reusable procedures and bypass replanning on later runs.
+- **Learning/curiosity signals** — unexplained failures and weak outcomes generate stored learning questions for future investigation.
+- **Central policy boundary** — permissions, risk tiers, owned-asset scope, live-finance approval, and sensitive-domain restrictions still gate every execution.
+- **Backward-compatible v0.1 kernel** — dependency planning, capability discovery, episodic memory, evaluation, and the original CLI demo remain intact.
 
 ## Quick start
 
 ```bash
 python -m pip install -e '.[dev]'
 pytest -q
-python -m genesis_os.cli capabilities
 python -m genesis_os.cli demo
+python -m genesis_os.cli objective-demo
 ```
 
-The demo executes a three-step capability graph:
+`objective-demo` performs three heartbeats. The first acquires a missing verified capability, the second reaches the compilation threshold, and the third reuses the compiled procedure.
+
+Expected metadata pattern:
 
 ```text
-sense.local_event -> analyze.event -> act.record_decision
+heartbeat 1: acquired_capabilities=[analyze.signal], procedure_reused=false
+heartbeat 2: procedure_compiled=true
+heartbeat 3: procedure_reused=true
 ```
-
-The final action is permission-gated. Remove `write_artifact` approval and the same plan is denied before the action executes.
 
 ## Capability contract
 
-A capability is described independently from the implementation that provides it:
+Capabilities describe the logical operation independently from its provider:
 
 ```json
 {
@@ -89,81 +78,45 @@ A capability is described independently from the implementation that provides it
   "description": "Navigate an approved browser session",
   "tags": ["browser", "computer-use"],
   "risk": "MEDIUM",
-  "requires": [],
   "permissions": ["browser_use"],
-  "domains": ["general"],
   "provider": "browser-use",
-  "learnable": true
+  "cost": 0.02,
+  "latency_ms": 800
 }
 ```
 
-This lets multiple providers compete for the same capability. A production router can choose based on reliability, latency, cost, privacy, policy, or historical success.
+Multiple providers can register the same `name`. The router chooses among them using observed outcomes and provider attributes.
 
-## Safety boundaries in the reference runtime
+## Safety boundaries
 
-Genesis is meant to be useful in sensitive domains without making the kernel itself unrestricted.
+Genesis is designed for long-running autonomy without making the base runtime unrestricted.
 
-- **Offensive-security execution is disabled in the base runtime.** Security integrations should default to owned-asset detection, validation, hardening, and controlled emulation.
-- **Live financial execution is off by default.** Research, simulation, backtesting, and risk analysis can run independently; live execution requires a separate explicit authorization boundary.
-- **Critical-risk capabilities are denied by default.**
-- **Permissions are explicit, capability-scoped inputs.**
-- **Generated code should run in isolated sandboxes before promotion.**
+- Offensive-security execution is disabled in the base runtime.
+- Critical-risk capabilities are denied by default.
+- Defensive-security actions require explicit owned-asset scope.
+- Live financial execution is off by default and requires explicit authorization.
+- Capability acquisition accepts only verified adapters above a trust threshold.
+- Generated code should execute in an external isolated sandbox and pass evaluation before it is eligible for registration.
 
 See `docs/THREAT_MODEL.md`.
 
+## What v0.2 does not pretend to be
+
+The reference kernel does not yet ship production MCP/A2A adapters, distributed scheduling, a frontier-model router, remote sandbox execution, a human-approval service, or a web control plane. Those belong behind the interfaces already present rather than inside the kernel.
+
+The next milestone is v0.3: real protocol/provider adapters plus a durable heartbeat service. See `docs/V0_2_RUNTIME.md`.
+
 ## Upstream strategy
 
-This repository does **not** vendor the upstream projects that inspired the capability map. That is deliberate. Vendoring would create licensing, patching, supply-chain, and transitive-dependency risks. Instead, Genesis uses adapters and manifests so upstream systems can be upgraded or replaced independently.
+Genesis does **not** vendor the large set of upstream projects that informed the architecture. They remain replaceable providers/domain packs with their own licenses and security posture. This avoids turning the kernel into an unmaintainable transitive dependency graph.
 
-See:
-
-- `docs/CAPABILITY_MAP.md`
-- `docs/ARCHITECTURE.md`
-- `docs/MARKET.md`
-- `docs/IMPLEMENTATION.md`
-- `research/VALIDATION.md`
-
-## Status
-
-### v0.1 — kernel/reference build
-
-Implemented:
-
-- capability registry and discovery
-- dependency-aware planning
-- cycle detection
-- central policy gate
-- risk tiers and explicit permissions
-- episodic memory
-- procedural-success tracking
-- evaluation interface
-- end-to-end runtime
-- CLI demo
-- security / capital-markets / research domain policies
-- CI workflow
-- unit and integration tests
-
-Next production layers:
-
-- provider scoring/router
-- MCP 2026-07-28 adapter
-- A2A adapter
-- sandbox provider adapter (E2B/OpenShell/Firecracker class)
-- graph + semantic memory adapter
-- event/heartbeat scheduler
-- model router
-- distributed run ledger
-- human approval service
-- capability compiler (successful dynamic procedure -> versioned skill/workflow)
-- UI/control plane
+See `docs/CAPABILITY_MAP.md` and `research/VALIDATION.md`.
 
 ## Contributors
 
 - [@sheldonOS](https://github.com/sheldonOS)
 - [@sheldonibm](https://github.com/sheldonibm)
 
-See [`CONTRIBUTORS.md`](CONTRIBUTORS.md).
-
 ## License
 
-The Genesis OS reference code in this repository is Apache-2.0. Upstream projects remain governed by their own licenses; integration must be reviewed per provider.
+The Genesis OS reference code in this repository is Apache-2.0. Upstream projects remain governed by their own licenses.

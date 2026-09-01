@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .acquisition import StaticCapabilitySource
 from .registry import CapabilityRegistry
-from .types import CapabilityManifest, RiskTier
+from .types import AcquiredCapability, CapabilityManifest, RiskTier
 
 
 def load_manifest(path: str | Path) -> CapabilityManifest:
@@ -19,6 +20,9 @@ def load_manifest(path: str | Path) -> CapabilityManifest:
         domains=tuple(raw.get("domains", [])),
         provider=raw.get("provider", "local"),
         learnable=bool(raw.get("learnable", True)),
+        version=str(raw.get("version", "1")),
+        cost=float(raw.get("cost", 0.0)),
+        latency_ms=float(raw.get("latency_ms", 0.0)),
     )
 
 
@@ -55,3 +59,26 @@ def demo_registry() -> CapabilityRegistry:
         lambda state: {"decision": "recorded", "basis": state["analyze.event"]},
     )
     return registry
+
+
+def objective_demo_source() -> StaticCapabilitySource:
+    candidate = AcquiredCapability(
+        manifest=CapabilityManifest(
+            name="analyze.signal",
+            description=(
+                "Analyze a structured signal acquired from a trusted local capability source"
+            ),
+            tags=("analysis", "acquired"),
+            requires=("sense.local_event",),
+            risk=RiskTier.READ_ONLY,
+            provider="trusted-catalog",
+        ),
+        handler=lambda state: {
+            "signal": state["sense.local_event"],
+            "finding": "novel pattern detected",
+        },
+        source="trusted-demo-catalog",
+        verified=True,
+        trust_score=1.0,
+    )
+    return StaticCapabilitySource([candidate])

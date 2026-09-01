@@ -1,4 +1,28 @@
+from .acquisition import CapabilityAcquirer, StaticCapabilitySource
+from .objectives import ObjectiveEngine
 from .runtime import GenesisRuntime
-from .types import CapabilityManifest, ExecutionContext, Goal, RiskTier
+from .types import (
+    AcquiredCapability,
+    CapabilityManifest,
+    ExecutionContext,
+    Goal,
+    ObjectiveRecord,
+    ObjectiveStatus,
+    RiskTier,
+)
+from .world import WorldModel
 
-__all__ = ["GenesisRuntime", "CapabilityManifest", "ExecutionContext", "Goal", "RiskTier"]
+__all__ = [
+    "AcquiredCapability",
+    "CapabilityAcquirer",
+    "CapabilityManifest",
+    "ExecutionContext",
+    "GenesisRuntime",
+    "Goal",
+    "ObjectiveEngine",
+    "ObjectiveRecord",
+    "ObjectiveStatus",
+    "RiskTier",
+    "StaticCapabilitySource",
+    "WorldModel",
+]
