@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import Enum, IntEnum
-from typing import Any, Callable
+from enum import IntEnum, StrEnum
+from typing import Any
 
 
 class RiskTier(IntEnum):
@@ -13,7 +14,7 @@ class RiskTier(IntEnum):
     CRITICAL = 4
 
 
-class ObjectiveStatus(str, Enum):
+class ObjectiveStatus(StrEnum):
     ACTIVE = "active"
     BLOCKED = "blocked"
     COMPLETED = "completed"
