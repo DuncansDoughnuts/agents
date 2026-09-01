@@ -14,5 +14,10 @@ def test_registry_rejects_duplicate_names():
 
 def test_discovery_scores_matching_capabilities():
     registry = CapabilityRegistry()
-    registry.register(CapabilityManifest(name="browser.navigate", description="navigate a browser", tags=("web",)), lambda _: 1)
+    manifest = CapabilityManifest(
+        name="browser.navigate",
+        description="navigate a browser",
+        tags=("web",),
+    )
+    registry.register(manifest, lambda _: 1)
     assert registry.discover("browser web")[0].name == "browser.navigate"
