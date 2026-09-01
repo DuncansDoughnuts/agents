@@ -1,0 +1,23 @@
+name: Genesis OS Export
+
+on:
+  push:
+    branches:
+      - genesis-os-export-v0.2
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Create Genesis OS ZIP
+        run: zip -r genesis-os-v0.2.zip genesis-os
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: genesis-os-v0.2
+          path: genesis-os-v0.2.zip
+          if-no-files-found: error
