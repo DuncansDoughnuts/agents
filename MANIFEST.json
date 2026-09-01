@@ -1,0 +1,34 @@
+{
+  "name": "DealOS",
+  "version": "1.0.1",
+  "created": "2026-09-01",
+  "source_skill_count": 505,
+  "dealos_wrapper_count": 12,
+  "default_stack": [
+    "ChatGPT owner console",
+    "OpenAI API",
+    "optional Manus",
+    "n8n",
+    "Gmail",
+    "Google Calendar",
+    "Google Drive",
+    "Supabase Postgres",
+    "Hunter contact discovery",
+    "SAM.gov",
+    "USAspending",
+    "DocuSign",
+    "Stripe",
+    "Caddy",
+    "GitHub repository (public-safe source; secrets excluded)"
+  ],
+  "design_target": {
+    "owner_minutes_per_week_max": 60,
+    "autonomous_money_movement": false,
+    "owner_signature_required": true
+  },
+  "n8n_workflow_count": 13,
+  "ai_operator_compatibility": {
+    "chatgpt_codex": "AGENTS.md + chatgpt/ owner-console schema",
+    "claude_code": "CLAUDE.md imports AGENTS.md"
+  }
+}
