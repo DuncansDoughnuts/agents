@@ -1,0 +1,26 @@
+name: Genesis OS CI
+
+on:
+  push:
+    paths:
+      - 'genesis-os/**'
+      - '.github/workflows/genesis-os-ci.yml'
+  pull_request:
+    paths:
+      - 'genesis-os/**'
+      - '.github/workflows/genesis-os-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: genesis-os
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[dev]'
+      - run: pytest -q
+      - run: python -m genesis_os.cli demo
