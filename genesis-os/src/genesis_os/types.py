@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 from typing import Any
 
 
@@ -11,6 +12,13 @@ class RiskTier(IntEnum):
     MEDIUM = 2
     HIGH = 3
     CRITICAL = 4
+
+
+class ObjectiveStatus(StrEnum):
+    ACTIVE = "active"
+    BLOCKED = "blocked"
+    COMPLETED = "completed"
+    PAUSED = "paused"
 
 
 @dataclass(frozen=True)
@@ -24,6 +32,9 @@ class CapabilityManifest:
     domains: tuple[str, ...] = ()
     provider: str = "local"
     learnable: bool = True
+    version: str = "1"
+    cost: float = 0.0
+    latency_ms: float = 0.0
 
 
 @dataclass
@@ -32,6 +43,16 @@ class Goal:
     required_capabilities: tuple[str, ...]
     domain: str = "general"
     metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ObjectiveRecord:
+    objective_id: str
+    goal: Goal
+    status: ObjectiveStatus = ObjectiveStatus.ACTIVE
+    heartbeat_count: int = 0
+    last_run_id: str | None = None
+    last_error: str | None = None
 
 
 @dataclass
@@ -59,3 +80,24 @@ class RunResult:
     success: bool
     steps: list[StepResult]
     run_id: str
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+CapabilityFn = Callable[[dict[str, Any]], Any]
+
+
+@dataclass(frozen=True)
+class AcquiredCapability:
+    manifest: CapabilityManifest
+    handler: CapabilityFn
+    source: str
+    verified: bool = False
+    trust_score: float = 0.0
+
+
+@dataclass(frozen=True)
+class CuriositySignal:
+    question: str
+    reason: str
+    priority: float
+    run_id: str | None = None
