@@ -36,9 +36,20 @@ class GenesisRuntime:
             manifest = self.registry.manifest(capability)
             decision = self.policy.authorize(manifest, context)
             if not decision.allowed:
-                result = StepResult(capability=capability, success=False, error=decision.reason, score=0.0)
+                result = StepResult(
+                    capability=capability,
+                    success=False,
+                    error=decision.reason,
+                    score=0.0,
+                )
                 results.append(result)
-                self.memory.remember_episode(run_id, capability, False, 0.0, {"error": decision.reason})
+                self.memory.remember_episode(
+                    run_id,
+                    capability,
+                    False,
+                    0.0,
+                    {"error": decision.reason},
+                )
                 return RunResult(goal=goal, success=False, steps=results, run_id=run_id)
 
             try:
@@ -51,7 +62,11 @@ class GenesisRuntime:
             result.score = self.evaluator.score(result)
             results.append(result)
             self.memory.remember_episode(
-                run_id, capability, result.success, result.score, {"output": result.output, "error": result.error}
+                run_id,
+                capability,
+                result.success,
+                result.score,
+                {"output": result.output, "error": result.error},
             )
             if not result.success:
                 return RunResult(goal=goal, success=False, steps=results, run_id=run_id)
