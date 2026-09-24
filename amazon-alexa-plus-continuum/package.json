@@ -1,0 +1,13 @@
+{
+  "name": "continuum-alexa-plus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stateful, approval-aware personal operations agent for the Amazon Alexa+ hackathon.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {"node": ">=20"},
+  "license": "MIT"
+}
